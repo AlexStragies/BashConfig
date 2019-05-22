@@ -1,0 +1,14 @@
+﻿ # <html -*- mode: org ; coding: utf-8-with-signature -*- >
+ # <script src="js/org-render.js"></script><body><!--
+#+SETUPFILE: Template.setup.org.htm
+
+ # Your Content starts here:
+#+Title: Bash Configuration, functions and scripts
+
+* Bash Configuration, functions and scripts
+Bash configuration for WSL (Windows) and Linux (Debian and others). The objective here is to collect, check and synchronise the good parts of my bash configurations 
+** Aliases
+** Script in =~/bin= folder
+*** =mtx.sh= Wrapper script for tmux
+This script is used for automatically handling shared sessions (and nesting)
+** Functions
