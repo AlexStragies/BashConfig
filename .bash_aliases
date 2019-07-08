@@ -80,6 +80,8 @@ alias edt="emacsclient -t"
 alias edg="ec -c"
 alias esh="emacsclient -t -e '(eshell)'"
 
+alias firstp="head -n $(($(tput lines)-1))"
+
 alias sudo='sudo '
 # Some Root-only Aliases:
 [[ $UID == '0' ]] && {
