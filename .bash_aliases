@@ -152,6 +152,15 @@ if [ -f ~/.ssh/adb-remote-hosts ]; then
        done <~/.ssh/adb-remote-hosts )
 fi
 
+# Sniff remote network interfaces in local wireshark
+remote-sniff () { \
+  ssh $1 \
+    sh -c "ls /usr/bin/dumpcap </dev/null &>/dev/null && \
+           /usr/bin/dumpcap -q -f 'port not 22' -w - -i $2 2>/dev/null || \
+           exec /usr/sbin/tcpdump -s0 -U -n -w - -i $2 'port not 22' 2>/dev/null" \
+  | wireshark -I -k -i - ;
+}
+
 # If there is a .bashrc.local, then execute it:
 if [ -f ~/.bashrc.local ]; then
     . ~/.bashrc.local
