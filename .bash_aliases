@@ -132,9 +132,25 @@ head_tail() {
     tail -n "$@";
 }
 
+ssh ()
+{
+  HOST=`awk -vH=$1 '$3==H&&$4=="#ALIAS"{H=$2} END{print H}' ~/.ssh/config`;
+  shift 1;
+  /usr/bin/ssh $HOST "$@"
+}
+
+
 toTable() {
   column -t | awk 'BEGIN{a="'$(tput smul)'";b="'$(tput sgr0)'"} {print a $0 b}'
 }
+
+if [ -f ~/.ssh/adb-remote-hosts ]; then
+   . /usr/share/bash-completion/completions/adb
+   . <(while read A H I ; 
+       do echo "alias adb-$A=\"adb-remote-helper.sh $H $I\"" ;
+          echo complete -o default -F _adb "adb-$A"
+       done <~/.ssh/adb-remote-hosts )
+fi
 
 # If there is a .bashrc.local, then execute it:
 if [ -f ~/.bashrc.local ]; then
