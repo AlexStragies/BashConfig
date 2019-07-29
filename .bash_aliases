@@ -146,18 +146,25 @@ toTable() {
 
 if [ -f ~/.ssh/adb-remote-hosts ]; then
    . /usr/share/bash-completion/completions/adb
-   . <(while read A H I ; 
+   . <(while read A H I ;
        do echo "alias adb-$A=\"adb-remote-helper.sh $H $I\"" ;
           echo complete -o default -F _adb "adb-$A"
        done <~/.ssh/adb-remote-hosts )
 fi
 
 # Sniff remote network interfaces in local wireshark
-remote-sniff () { \
+remote-sniff () {
+  IF=${2:-eth0}
+  DCbin='/usr/bin/dumpcap'
+  DCopt="$DCbin -q -i $IF"
+  TDbin='/usr/sbin/tcpdump'
+  TDopt="$TDbin -s0 -U -n -w - -i $IF"
+  DN='/dev/null'
+  DF='"port not ${SSH_CLIENT##* }"'
   ssh $1 \
-    sh -c "ls /usr/bin/dumpcap </dev/null &>/dev/null && \
-           /usr/bin/dumpcap -q -f 'port not 22' -w - -i $2 2>/dev/null || \
-           exec /usr/sbin/tcpdump -s0 -U -n -w - -i $2 'port not 22' 2>/dev/null" \
+    sh -c "ls $DCbin </dev/null &>$DN && \
+           $DCopt -f $DF -w - 2>$DN || \
+           exec $TDopt $DF 2>$DN" \
   | wireshark -I -k -i - ;
 }
 
@@ -169,7 +176,7 @@ fi
 #run -b 'tmux setenv -g U_FullName "$(getent passwd `whoami` | cut -d : -f 5 | cut -d , -f 1 )"'
 #run -b 'U_FullName="$(getent passwd `whoami` | cut -d : -f 5 | cut -d , -f 1 )";''
 #╔════════════════════════════════════════════════════════════╗
-#║ asdifaskdfasd?/äasdklöf                                       ║
+#║ asdifaskdfasäasdklöf                                       ║
 #╠════════════════════════════════════════════════════════════╣
 #║                                                            ║
 #╠════════════════════════════════════════════════════════════╣
