@@ -144,13 +144,28 @@ toTable() {
   column -t | awk 'BEGIN{a="'$(tput smul)'";b="'$(tput sgr0)'"} {print a $0 b}'
 }
 
+SSHHosts() {
+    sed '/^Host/!d;s/\(Host \| *#ALIAS\|[^ ]*\* *\)//g' .ssh/config
+}
+
+which adb-remote-helper.sh &> /dev/null && \
 if [ -f ~/.ssh/adb-remote-hosts ]; then
    . /usr/share/bash-completion/completions/adb
    . <(while read A H I ;
        do echo "alias adb-$A=\"adb-remote-helper.sh $H $I\"" ;
           echo complete -o default -F _adb "adb-$A"
        done <~/.ssh/adb-remote-hosts )
-fi
+fi && \
+_adb-remote-helper-completion() {
+  [[ "$COMP_CWORD" == 1 ]] && {
+      COMPREPLY=($(compgen -W "$(SSHHosts)" "${COMP_WORDS[1]}"))
+  }
+  [[ "$COMP_CWORD" == 2 ]] && {
+      ADBDevs="$(ssh ${COMP_WORDS[1]} adb devices | sed '/device$/!d;s/\t.*$//g')"
+      COMPREPLY=($(compgen -W "$ADBDevs" "${COMP_WORDS[2]}"))
+  }
+} && \
+complete -F _adb-remote-helper-completion adb-remote-helper.sh
 
 # Sniff remote network interfaces in local wireshark
 remote-sniff () {
@@ -167,6 +182,17 @@ remote-sniff () {
            exec $TDopt $DF 2>$DN" \
   | wireshark -I -k -i - ;
 }
+
+_remote_sniff_completion() {
+
+  [[ "$COMP_CWORD" == 1 ]] && {
+      COMPREPLY=($(compgen -W "$(SSHHosts)" "${COMP_WORDS[1]}"))
+  }
+  [[ "$COMP_CWORD" == 2 ]] && \
+    COMPREPLY=($(compgen -W "$(ssh ${COMP_WORDS[1]} ls -1 /sys/class/net)" "${COMP_WORDS[2]}"))
+}
+
+complete -F _remote_sniff_completion remote-sniff
 
 # If there is a .bashrc.local, then execute it:
 if [ -f ~/.bashrc.local ]; then
