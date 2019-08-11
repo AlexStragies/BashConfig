@@ -153,7 +153,9 @@ if [ -f ~/.ssh/adb-remote-hosts ]; then
    . /usr/share/bash-completion/completions/adb
    . <(while read A H I ;
        do echo "alias adb-$A=\"adb-remote-helper.sh $H $I\"" ;
-          echo complete -o default -F _adb "adb-$A"
+          echo "alias adb--$H=\"adb-remote-helper.sh $H any\"" ;
+          echo complete -o default -F _adb "adb-$A" ;
+          echo complete -o default -F _adb "adb--$H"
        done <~/.ssh/adb-remote-hosts )
 fi && \
 _adb-remote-helper-completion() {
