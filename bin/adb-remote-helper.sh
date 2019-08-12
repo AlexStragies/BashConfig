@@ -40,27 +40,27 @@ case "$1" in "--help"|"-h") grep    '^#[^ ]........'    $0; exit 1;;
 [ -z "$1" ] && { echo "ADB-SSH Destination required as \$1"; exit 1; } \
             || { Host=$1 ; shift; }
 
-# Start a remote adb-server
+COMMENT="Starting remote adb server"
 ssh $Host adb start-server &&
 
   # Generate a (hopefully) unique Port-Number to be used for the port-porward
   # TODO: Can I use a local socket for this?
   Port="3"$(echo $Host | md5sum | tr -d a-z | colrm 5 55) &&
 
-    # Setup port forwarding to the remote adb-server
-    # TODO: Can I use a local socket for this?
-    ssh -fNT -L $Port:0:5037 $Host &&
+    COMMENT="Forwarding local Port $Port" &&
+    ssh -fNT -L $Port:0:5037 $Host        &&
 
-      # Determine remote adb server version
-      RemAdbVer=$(ssh $Host adb version | sed -n s-^And.*1.0.--p ) ||
+      COMMENT="Determining remote adb server version"          &&
+      RemAdbVer="$(ssh $Host adb version)"                     &&
+      RemAdbVer=$(echo "$RemAdbVer" | sed -n s-^And.*1.0.--p ) ||
 
 # Here comes the case, where we couldn't connect via SSH
-{ echo "Error: Can't SSH to $Host"; exit 1; }
+{ echo "Error while: $COMMENT"; exit 1; }
 
 # Check, if we have a local binary specific to the remote adb version
 [ -e ~/bin/adb-$RemAdbVer ] && AdbExe=~/bin/adb-$RemAdbVer
 
-# Check, if <Device_Serial>, 'any', or nothing was given as $2
+# Check, if <Device_Serial>, 'any', or nothing was given as next parameter
 [ ! -z $1 ] && { [ "$1" != "any" ] && DevID="-s $1" || true; } && shift;
 
 # Run the final composed command
