@@ -43,18 +43,17 @@ case "$1" in "--help"|"-h") grep    '^#[^ ]........'    $0; exit 1;;
 COMMENT="Starting remote adb server"
 ssh $Host adb start-server &&
 
-  # Generate a (hopefully) unique Port-Number to be used for the port-porward
+  COMMENT="Forwarding local Port $Port" &&
+  # Generate a (hopefully) unique Port-Number to be used for the port-forward
   # TODO: Can I use a local socket for this?
   Port="3"$(echo $Host | md5sum | tr -d a-z | colrm 5 55) &&
+  ssh -fNT -L $Port:0:5037 $Host                          &&
 
-    COMMENT="Forwarding local Port $Port" &&
-    ssh -fNT -L $Port:0:5037 $Host        &&
+    COMMENT="Determining remote adb server version"          &&
+    RemAdbVer="$(ssh $Host adb version)"                     &&
+    RemAdbVer=$(echo "$RemAdbVer" | sed -n s-^And.*1.0.--p ) ||
 
-      COMMENT="Determining remote adb server version"          &&
-      RemAdbVer="$(ssh $Host adb version)"                     &&
-      RemAdbVer=$(echo "$RemAdbVer" | sed -n s-^And.*1.0.--p ) ||
-
-# Here comes the case, where we couldn't connect via SSH
+# Here comes the case, where failures from the above will be caught:
 { echo "Error while: $COMMENT"; exit 1; }
 
 # Check, if we have a local binary specific to the remote adb version
