@@ -1,0 +1,41 @@
+#!/bin/sh
+#╔═══════════════════════════════════════════════════════════════════════════════╗
+#║ Connection helper for remote command/shell sessions                           ║
+#╠═══════════════════════════════════════════════════════════════════════════════╣
+#║                                                                               ║
+#║ Usage: $0 <Host|Destination> [<Optional_Arguments> ...] [<Optional_CMD>]      ║
+#║                                                                               ║
+#╟───────────────────────────────────────────────────────────────────────────────╢
+#║                                                                               ║
+#║ This wrapper will                                                             ║
+#║                                                                               ║
+#║                                                                               ║
+#║                                                                               ║
+#║                                                                               ║
+#║                                                                               ║
+#╟───────────────────────────────────────────────────────────────────────────────╢
+#║ Author: Alex Stragies                                                         ║
+#╚═══════════════════════════════════════════════════════════════════════════════╝
+
+# Display above documentation when called with '--help', or '-h'
+case "$1" in "--help"|"-h") grep    '^#[^ ]........'    $0; exit 1;;
+             "--code"|'-c') grep -v '^#[^!]\|^$\|^ *# ' $0; exit 1;; esac
+
+# Check for required first parameter: Destination
+[ -z "$1" ] && { echo "Destination required as \$1"; exit 1; } \
+            || { Host=$1 ; shift; }
+
+Method="ssh"
+
+echo $Host
+#grep "^$Host" ~/.ssh/remote_hosts # &&
+BUFF=$(grep "^$Host" ~/.ssh/remote_hosts)
+RET=$?
+echo BUFF= $BUFF
+[ $RET -eq 0 ] &&
+    echo "host $Host was found in file: $BUFF" &&
+    Method=$(echo $BUFF | cut -d' ' -f 2) &&
+    echo extracted method $Method
+
+echo using $Method
+exec $Method $Host
