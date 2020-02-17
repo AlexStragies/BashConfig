@@ -1,9 +1,8 @@
 #!/bin/bash
 TERM=screen-256color
 
-DEBUG='y' # My Debug Variable
+DEBUG='n' # My Debug Variable
 DefaultSessionName='rlx'
-NestConf="$HOME/.tmux.nested.conf"
 
 showRun(){ echo $1; shift;
            echo Will run: exec $@;
@@ -15,6 +14,7 @@ while [ ! -z $1 ] ; do
     (n|-n) NestMaster='y' ; shift   ;;
     (s)    SNAME=$2       ; shift 2 ;;
     (w)    WNAME=$2       ; shift 2 ;;
+    (a)    TMXOP=" "      ; shift   ;;
     (+d)   DEBUG="y"      ; shift   ;;
     (-d)   unset DEBUG    ; shift   ;;
     (*)    break                    ;;
@@ -22,14 +22,13 @@ while [ ! -z $1 ] ; do
 done
 
 SNAME=${SNAME:-rlx}
-test -z $NestMaster || { TMXOPTS="$TMXOPTS -f $NestConf";
-                         SNAME="NEST$SNAME"; unset TMUX; }
+test -z $NestMaster || { SNAME="NEST$SNAME"; unset TMUX; }
 TMXOPTS="$TMXOPTS -L $SNAME"
 SSNAME="Session $SNAME"
 TMX="tmux $TMXOPTS"
 TMXNEW="$TMX new-session"
 TMXATT="$TMX attach"
-TMXOP="new-window $1"
+TMXOP=${TMXOP:-new-window $1}
 
 #if ! tmux has -t $SNAME; then
 if ! $TMX has -t $SNAME; then
@@ -45,7 +44,7 @@ else
 		REGEX="group ([^)]*)"
 		[[ $MySESSION =~ $REGEX ]]
 		GNAME=${BASH_REMATCH[1]}
-		GSESSIONS=$($TMUX ls | grep "group $GNAME)" | grep -v $SNAME:)
+		GSESSIONS=$($TMX ls | grep "group $GNAME)" | grep -v $SNAME:)
 		echo "$GSESSIONS"
 		if [ -z "$GSESSIONS" ]; then
 			showRun "No sessions in group with $SNAME found, creating new one:" \
@@ -65,10 +64,10 @@ else
 							echo "Keeping session $KEEPSID for takeover after cleanup"
 						else
 							echo "Cleaning up old detached session $SID"
-							$TMUX kill-session -t ${SID%:}
+							$TMX kill-session -t ${SID%:}
 						fi;
 					done
-					KEEPSID=$($TMUX ls|grep "group $GNAME)" | grep -v attached);
+					KEEPSID=$($TMX ls|grep "group $GNAME)" | grep -v attached);
 					KEEPSID=${KEEPSID%: *}
 					showRun "Attaching to session $KEEPSID:" \
 					        $TMXATT -t $KEEPSID \; $TMXOP
