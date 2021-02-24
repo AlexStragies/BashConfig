@@ -111,9 +111,9 @@ BUF=""
 while test "$H" != "$P" ; do # Each following loop pass will chop dotted part.
   test -e "~/.ssh/cfg_$H" && BUF1="${BUF1}Include cfg_$H\n";
   K=ed25519 F=id_$K.$H;
-  test -e "$HOME/.ssh/$F.pub" && BUF2="$BUF2\tIdentityFile $F\n" ;
+  test -e "$HOME/.ssh/$F.pub" && BUF2="$BUF2\tIdentityFile $HOME/.ssh/$F\n" ;
   K=rsa F=id_$K.$H;
-  test -e "$HOME/.ssh/$F.pub" && BUF2="$BUF2\tIdentityFile $F\n" ;
+  test -e "$HOME/.ssh/$F.pub" && BUF2="$BUF2\tIdentityFile $HOME/.ssh/$F\n" ;
   P=$H H="${H#*.}";
 done
 
