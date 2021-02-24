@@ -43,16 +43,19 @@ case $H in (*---*) # An Alias
   ;;
 esac
 
+echo "H: $H"
 CMD=${H#*--} # Attempt to extract command and args from hostname, if given
+echo "CMD: $CMD"
 
 # Todo: make following `test` call "better"
 if test -n "$CMD" -a "$H" != "$CMD"; then   # If embedded command is found
   case $CMD in (*--*)                       # Command has Parameters!
     # TODO: Make the next few lines "better"
     PARMS=${CMD#*--} CMD=${CMD%%--*};       # Extract up to 4 Parameters
+    echo "PARMS: $PARMS"
     P1=${PARMS%%--*} PARMS=${PARMS#*--} P2=${PARMS%%--*} PARMS=${PARMS#*--}
     P3=${PARMS%%--*} PARMS=${PARMS#*--} P4=${PARMS%%--*} PARMS=${PARMS#*--}
-    #echo "P1: $P1 P2: $P2 P3: $P3" ;;
+    echo "P1: $P1 P2: $P2 P3: $P3" ;
     test "$P4" = "$P3" && P4=""
     test "$P3" = "$P2" && P3=""
     test "$P2" = "$P1" && P2=""
@@ -65,7 +68,7 @@ if test -n "$CMD" -a "$H" != "$CMD"; then   # If embedded command is found
     # Parameters: 1(optional): Android Device ID, default is any/first device
     # TODO: enable other commands as `shell` with P2
     adb)
-      if test -z $P1;
+      if test -z "$P1";
         then O="$O\tRemoteCommand adb        \${LC_ADB_CMD:-shell}\n";
 	else O="$O\tRemoteCommand adb -s $P1 \${LC_ADB_CMD:-shell}\n"
       fi
@@ -106,11 +109,11 @@ BUF=""
 # Check for dedicated ssh keys per destination (sub)domains:
 # This will prioritze long hostname matches, then ED25519 keys over RSA
 while test "$H" != "$P" ; do # Each following loop pass will chop dotted part.
-  test -e "cfg_$H" && BUF1="${BUF1}Include cfg_$H\n";
+  test -e "~/.ssh/cfg_$H" && BUF1="${BUF1}Include cfg_$H\n";
   K=ed25519 F=id_$K.$H;
-  test -e "$F.pub" && BUF2="$BUF2\tIdentityFile $F\n" ;
+  test -e "$HOME/.ssh/$F.pub" && BUF2="$BUF2\tIdentityFile $F\n" ;
   K=rsa F=id_$K.$H;
-  test -e "$F.pub" && BUF2="$BUF2\tIdentityFile $F\n" ;
+  test -e "$HOME/.ssh/$F.pub" && BUF2="$BUF2\tIdentityFile $F\n" ;
   P=$H H="${H#*.}";
 done
 
